@@ -3,9 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#f5f6fb" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#10121b" media="(prefers-color-scheme: dark)">
-  <meta name="description" content="Cronômetro de ganhos com ciclos de 3 minutos.">
+  <meta name="theme-color" content="#000000">
+  <meta name="description" content="Ritmo: cronômetro de ganhos com ciclos de 3 minutos.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="./manifest.json">
@@ -13,210 +12,154 @@
   <link rel="apple-touch-icon" href="./icon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <title>Ritmo — Cronômetro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>Ritmo — AMOLED</title>
   <style>
     :root {
-      color-scheme: light dark;
-      --bg: #f5f6fb;
-      --surface: rgba(255,255,255,.78);
-      --surface-solid: #fff;
-      --surface-2: #eef0f8;
-      --text: #171827;
-      --muted: #777b91;
-      --line: rgba(34,39,68,.09);
-      --accent: #6c63ff;
-      --accent-2: #9a73ff;
-      --green: #16a878;
-      --red: #e85c72;
-      --shadow: 0 22px 65px rgba(42,45,95,.10);
-      --ring-bg: rgba(108,99,255,.12);
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #10121b;
-        --surface: rgba(27,30,45,.82);
-        --surface-solid: #1b1e2d;
-        --surface-2: #25293b;
-        --text: #f4f4fc;
-        --muted: #9a9eb4;
-        --line: rgba(229,231,255,.09);
-        --accent: #928aff;
-        --accent-2: #b18aff;
-        --green: #35d6a1;
-        --red: #ff7187;
-        --shadow: 0 24px 70px rgba(0,0,0,.30);
-        --ring-bg: rgba(146,138,255,.14);
-      }
+      color-scheme: dark;
+      --black: #000000;
+      --surface: #080808;
+      --surface-2: #101010;
+      --line: #202020;
+      --text: #f4f4f4;
+      --muted: #858585;
+      --green: #b5e5c8;
+      --red: #e49a9a;
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html { min-height: 100%; background: var(--bg); }
+    html, body { margin: 0; min-height: 100%; background: var(--black); color: var(--text); }
     body {
-      margin: 0; min-height: 100vh; min-height: 100dvh; overflow-x: hidden;
-      background:
-        radial-gradient(ellipse at 10% 0%, rgba(143,125,255,.15), transparent 36%),
-        radial-gradient(ellipse at 100% 80%, rgba(48,199,164,.11), transparent 34%), var(--bg);
-      color: var(--text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      display: flex; justify-content: center; padding: max(18px, env(safe-area-inset-top)) 17px max(24px, env(safe-area-inset-bottom));
-      transition: background .35s ease, color .35s ease;
+      min-height: 100vh; min-height: 100dvh; overflow-x: hidden;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      padding: max(18px, env(safe-area-inset-top)) 16px max(22px, env(safe-area-inset-bottom));
     }
     button, input { font: inherit; }
-    button { color: inherit; }
-    .ambient { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
-    .orb { position: absolute; border-radius: 999px; filter: blur(2px); opacity: .34; animation: drift 13s ease-in-out infinite alternate; }
-    .orb.one { width: 190px; height: 190px; top: 13%; left: -100px; background: radial-gradient(circle, #9189ff 0%, transparent 70%); }
-    .orb.two { width: 240px; height: 240px; right: -135px; top: 48%; background: radial-gradient(circle, #40d6b1 0%, transparent 70%); animation-delay: -5s; }
-    .orb.three { width: 150px; height: 150px; left: 45%; bottom: -90px; background: radial-gradient(circle, #ff9bb3 0%, transparent 70%); animation-delay: -8s; }
-    .app { width: min(100%, 470px); position: relative; z-index: 1; display: flex; flex-direction: column; gap: 17px; }
-    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 2px 1px 3px; }
+    button { color: inherit; touch-action: manipulation; }
+    [hidden] { display: none !important; }
+    .app { width: min(100%, 470px); margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+    .topbar { min-height: 48px; display: flex; align-items: center; justify-content: space-between; }
     .brand { display: flex; align-items: center; gap: 11px; }
-    .brand-mark { width: 39px; height: 39px; border-radius: 14px; display: grid; place-items: center; color: white; background: linear-gradient(135deg, #776bff, #a16cff); box-shadow: 0 8px 22px rgba(112,98,255,.32); }
-    .brand-mark svg { width: 22px; height: 22px; }
-    .brand-name { font-size: 16px; font-weight: 850; letter-spacing: -.65px; }
-    .brand-sub { font-size: 10px; color: var(--muted); font-weight: 600; margin-top: 2px; letter-spacing: .55px; text-transform: uppercase; }
-    .top-actions { display: flex; align-items: center; gap: 9px; }
-    .theme-pill { font-size: 10px; font-weight: 650; color: var(--muted); background: var(--surface); border: 1px solid var(--line); padding: 7px 10px; border-radius: 99px; backdrop-filter: blur(12px); }
-    .lock-btn { position: relative; z-index: 70; width: 39px; height: 39px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); backdrop-filter: blur(12px); display: grid; place-items: center; box-shadow: 0 5px 18px rgba(0,0,0,.06); cursor: pointer; transition: transform .2s, background .2s, border-color .2s; }
-    .lock-btn:active { transform: scale(.9); }
-    .lock-btn svg { width: 18px; height: 18px; }
-    .lock-btn.locked { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; border-color: transparent; }
-    .balance-card, .timer-card, .info-card { border: 1px solid var(--line); background: var(--surface); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: var(--shadow); border-radius: 25px; }
-    .balance-card { padding: 19px 20px 17px; position: relative; overflow: hidden; animation: rise .65s both; }
-    .balance-card:after { content: ''; position: absolute; width: 155px; height: 155px; right: -65px; top: -84px; border-radius: 50%; background: rgba(126,112,255,.12); filter: blur(2px); }
-    .balance-head { display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 1; }
-    .eyebrow { color: var(--muted); font-size: 11px; font-weight: 750; letter-spacing: .9px; text-transform: uppercase; }
-    .edit-balance { display: flex; align-items: center; gap: 5px; border: 0; background: var(--surface-2); border-radius: 10px; padding: 7px 10px; color: var(--muted); font-weight: 700; font-size: 11px; cursor: pointer; transition: .2s; }
-    .edit-balance:active { transform: scale(.94); }
-    .edit-balance svg { width: 13px; height: 13px; }
-    .balance-value { font-size: clamp(34px, 10vw, 43px); font-weight: 850; letter-spacing: -2.2px; margin-top: 10px; line-height: 1.14; font-variant-numeric: tabular-nums; position: relative; z-index: 1; }
-    .balance-foot { margin-top: 8px; color: var(--muted); font-size: 11px; display: flex; align-items: center; gap: 7px; }
-    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px rgba(22,168,120,.12); }
-    .timer-card { padding: 24px 19px 19px; text-align: center; position: relative; overflow: hidden; animation: rise .7s .08s both; }
-    .timer-card:before { content: ''; position: absolute; inset: -1px; background: linear-gradient(135deg, rgba(126,112,255,.08), transparent 40%, rgba(45,204,162,.05)); pointer-events: none; }
-    .timer-title { position: relative; z-index: 1; font-size: 12px; font-weight: 750; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
-    .ring-wrap { width: min(69vw, 264px); aspect-ratio: 1; margin: 17px auto 13px; position: relative; display: grid; place-items: center; }
-    .ring-wrap:after { content: ''; position: absolute; inset: 13%; border-radius: 50%; background: radial-gradient(circle, rgba(130,115,255,.10), transparent 70%); animation: breathe 4s ease-in-out infinite; }
-    .progress-ring { width: 100%; height: 100%; position: absolute; inset: 0; transform: rotate(-90deg); overflow: visible; }
-    .ring-track, .ring-progress { fill: none; stroke-width: 9; }
-    .ring-track { stroke: var(--ring-bg); }
-    .ring-progress { stroke: url(#ringGradient); stroke-linecap: round; stroke-dasharray: 565.49; stroke-dashoffset: 565.49; transition: stroke-dashoffset .45s linear; filter: drop-shadow(0 0 7px rgba(127,112,255,.42)); }
-    .ring-content { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 7px; }
-    .time { font-size: clamp(40px, 12vw, 54px); font-weight: 800; letter-spacing: -2.6px; line-height: 1; font-variant-numeric: tabular-nums; }
-    .status { color: var(--muted); font-size: 11px; font-weight: 650; display: flex; align-items: center; gap: 6px; }
-    .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 99px; background: var(--muted); }
-    .status.running .status-dot { background: var(--green); box-shadow: 0 0 0 4px rgba(22,168,120,.13); animation: blink 1.7s infinite; }
-    .status.paused .status-dot { background: #e3a33f; }
-    .next-cycle { background: var(--surface-2); display: inline-flex; gap: 7px; align-items: center; border-radius: 99px; padding: 9px 13px; font-size: 11px; color: var(--muted); font-weight: 650; position: relative; z-index: 1; }
+    .brand-mark { width: 38px; height: 38px; border: 1px solid #303030; border-radius: 12px; display: grid; place-items: center; background: #080808; color: #f5f5f5; }
+    .brand-mark svg { width: 21px; height: 21px; }
+    .brand-name { font-size: 16px; font-weight: 800; letter-spacing: -.5px; }
+    .brand-sub { margin-top: 2px; color: var(--muted); font-size: 10px; font-weight: 500; letter-spacing: .5px; }
+    .eyebrow, .info-label { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+    .card { border: 1px solid var(--line); border-radius: 19px; background: var(--surface); }
+    .balance-card { padding: 18px 18px 16px; }
+    .balance-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .edit-balance { border: 1px solid var(--line); border-radius: 10px; background: #101010; padding: 8px 10px; color: #c9c9c9; font-size: 11px; font-weight: 650; }
+    .balance-value { margin-top: 11px; font-size: clamp(36px, 10vw, 45px); line-height: 1.1; font-weight: 800; letter-spacing: -2px; font-variant-numeric: tabular-nums; }
+    .balance-foot { display: flex; align-items: center; gap: 7px; margin-top: 9px; color: var(--muted); font-size: 11px; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex: 0 0 auto; }
+    .timer-card { padding: 22px 17px 17px; text-align: center; }
+    .timer-title { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+    .timer { margin: 18px 0 8px; font-size: clamp(43px, 13vw, 58px); line-height: 1.05; font-weight: 700; letter-spacing: -2px; font-variant-numeric: tabular-nums; }
+    .status { min-height: 17px; color: var(--muted); font-size: 11px; font-weight: 550; }
+    .next-cycle { display: inline-flex; align-items: center; gap: 8px; margin-top: 17px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 99px; color: var(--muted); font-size: 11px; }
     .next-cycle strong { color: var(--text); font-variant-numeric: tabular-nums; }
-    .next-cycle .spark { color: #e6a63b; font-size: 14px; }
-    .controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 9px; margin-top: 21px; position: relative; z-index: 1; }
-    .control-btn { border: 0; border-radius: 15px; padding: 13px 7px; min-height: 53px; display: flex; align-items: center; justify-content: center; gap: 7px; font-size: 12px; font-weight: 750; cursor: pointer; transition: transform .17s ease, filter .17s ease, opacity .2s; }
-    .control-btn:active:not(:disabled) { transform: scale(.95); filter: brightness(.96); }
-    .control-btn:disabled { opacity: .38; cursor: not-allowed; }
-    .control-btn svg { width: 16px; height: 16px; }
-    .start-btn { color: white; background: linear-gradient(135deg, #7065ff, #9871ff); box-shadow: 0 9px 21px rgba(113,99,255,.25); }
-    .pause-btn { background: var(--surface-2); color: var(--text); }
-    .stop-btn { background: rgba(232,92,114,.11); color: var(--red); }
-    .info-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; animation: rise .7s .16s both; }
-    .info-card { border-radius: 18px; padding: 14px 15px; box-shadow: 0 8px 28px rgba(42,45,95,.045); }
-    .info-label { font-size: 10px; color: var(--muted); font-weight: 750; text-transform: uppercase; letter-spacing: .7px; }
-    .info-value { font-size: 18px; font-weight: 800; letter-spacing: -.6px; margin-top: 7px; font-variant-numeric: tabular-nums; }
-    .info-hint { color: var(--muted); font-size: 10px; margin-top: 3px; }
-    .footer-note { text-align: center; color: var(--muted); font-size: 10px; line-height: 1.6; padding: 0 10px; opacity: .85; }
-    .install-btn { align-self: center; display: none; border: 1px solid var(--line); border-radius: 99px; background: var(--surface); padding: 10px 16px; font-size: 11px; font-weight: 750; cursor: pointer; color: var(--text); }
-    .install-btn.show { display: inline-flex; gap: 8px; align-items: center; }
-    .toast { position: fixed; z-index: 120; left: 50%; bottom: max(22px, env(safe-area-inset-bottom)); transform: translate(-50%, 18px); opacity: 0; pointer-events: none; background: #24263a; color: #fff; border: 1px solid rgba(255,255,255,.12); border-radius: 14px; padding: 12px 16px; width: max-content; max-width: calc(100vw - 36px); text-align: center; font-size: 12px; font-weight: 650; box-shadow: 0 12px 35px rgba(0,0,0,.22); transition: .28s ease; }
-    .toast.show { opacity: 1; transform: translate(-50%, 0); }
-    .modal-backdrop { position: fixed; z-index: 100; inset: 0; background: rgba(9,11,21,.48); backdrop-filter: blur(9px); display: none; align-items: center; justify-content: center; padding: 20px; animation: fade .2s; }
+    .controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 19px; }
+    .control-btn { min-height: 49px; border: 1px solid var(--line); border-radius: 13px; padding: 10px 6px; background: #101010; color: #eeeeee; font-size: 12px; font-weight: 700; }
+    .control-btn:disabled { opacity: .28; }
+    .start-btn { background: #f2f2f2; border-color: #f2f2f2; color: #050505; }
+    .stop-btn { color: var(--red); }
+    .info-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .info-card { min-height: 94px; padding: 15px; }
+    .info-value { margin-top: 10px; font-size: 21px; font-weight: 750; letter-spacing: -.6px; font-variant-numeric: tabular-nums; }
+    .info-hint { margin-top: 4px; color: var(--muted); font-size: 10px; }
+    .install-btn { display: none; width: 100%; padding: 13px; border: 1px solid var(--line); border-radius: 12px; background: #101010; color: var(--text); font-size: 12px; font-weight: 700; }
+    .install-btn.show { display: block; }
+    .footer-note { color: #686868; text-align: center; font-size: 10px; line-height: 1.7; padding: 3px 10px 0; }
+
+    /* Tela de foco: preto absoluto para telas OLED/AMOLED. */
+    .focus-screen {
+      position: fixed; z-index: 50; inset: 0; width: 100%; height: 100%; height: 100dvh;
+      background: #000; color: #f2f2f2; padding: max(18px, env(safe-area-inset-top)) 22px max(24px, env(safe-area-inset-bottom));
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; overscroll-behavior: none;
+    }
+    .focus-caption { color: #626262; font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; }
+    .focus-time { margin: 15px 0 11px; color: #f1f1f1; font-size: clamp(48px, 15vw, 72px); line-height: 1; font-weight: 500; letter-spacing: -2.8px; font-variant-numeric: tabular-nums; }
+    .focus-status { min-height: 17px; color: #777; font-size: 11px; font-weight: 500; }
+    .focus-countdown { margin-top: 27px; color: #555; font-size: 11px; font-variant-numeric: tabular-nums; }
+    .focus-actions { display: flex; flex-direction: column; align-items: center; gap: 22px; margin-top: 38px; width: 100%; }
+    .focus-pause { min-width: 176px; min-height: 50px; padding: 12px 24px; border: 1px solid #303030; border-radius: 99px; background: #080808; color: #dedede; font-size: 13px; font-weight: 600; }
+    .focus-stop { border: 0; background: transparent; color: #666; padding: 6px 16px; font-size: 11px; font-weight: 500; text-decoration: underline; text-underline-offset: 4px; }
+
+    .toast { position: fixed; z-index: 100; left: 50%; bottom: max(22px, env(safe-area-inset-bottom)); transform: translateX(-50%); width: max-content; max-width: calc(100% - 32px); padding: 11px 15px; border: 1px solid #303030; border-radius: 12px; background: #171717; color: #eeeeee; font-size: 11px; line-height: 1.4; text-align: center; display: none; }
+    .toast.show { display: block; }
+    .modal-backdrop { position: fixed; z-index: 110; inset: 0; padding: 18px; background: rgba(0,0,0,.88); display: none; align-items: center; justify-content: center; }
     .modal-backdrop.show { display: flex; }
-    .modal { width: min(100%, 390px); background: var(--surface-solid); border: 1px solid var(--line); border-radius: 24px; padding: 23px; box-shadow: 0 25px 80px rgba(0,0,0,.24); animation: pop .28s cubic-bezier(.2,.8,.2,1); }
-    .modal h2 { margin: 0; font-size: 19px; letter-spacing: -.6px; }
-    .modal p { color: var(--muted); font-size: 12px; line-height: 1.55; margin: 8px 0 17px; }
-    .money-input { width: 100%; border: 1px solid var(--line); background: var(--surface-2); border-radius: 14px; padding: 14px 15px; color: var(--text); font-size: 22px; font-weight: 800; outline: none; }
-    .money-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(108,99,255,.13); }
-    .modal-actions { display: flex; gap: 9px; margin-top: 17px; }
-    .modal-actions button { flex: 1; border: 0; border-radius: 13px; padding: 13px; font-size: 12px; font-weight: 750; cursor: pointer; }
-    .secondary { background: var(--surface-2); }
-    .primary { color: white; background: linear-gradient(135deg, #7065ff, #9871ff); }
-    .report-modal { width: min(100%, 410px); max-height: min(90dvh, 820px); overflow-y: auto; }
-    .report-head { display:flex; align-items:center; justify-content:space-between; margin-bottom: 13px; }
-    .close-btn { width: 32px; height: 32px; border: 0; border-radius: 10px; background: var(--surface-2); font-size: 19px; cursor:pointer; }
-    .report-image { width: 100%; display: block; border-radius: 14px; border: 1px solid var(--line); background: var(--surface-2); }
-    .download-btn { width: 100%; margin-top: 13px; color: white; border: 0; border-radius: 14px; background: linear-gradient(135deg, #7065ff, #9871ff); padding: 14px; font-size: 12px; font-weight: 800; cursor: pointer; }
-    .report-caption { font-size: 10px !important; margin: 10px 2px 0 !important; }
-    .shield { position: fixed; z-index: 40; inset: 0; display: none; background: rgba(5,7,14,.035); cursor: not-allowed; touch-action: none; }
-    .shield.active { display: block; }
-    .lock-hint { position: fixed; z-index: 69; top: max(58px, calc(env(safe-area-inset-top) + 50px)); right: 17px; background: #24263a; color: white; padding: 9px 12px; border-radius: 11px; font-size: 10px; font-weight: 650; box-shadow: 0 9px 25px rgba(0,0,0,.2); display: none; pointer-events: none; }
-    body.is-locked .lock-hint { display: block; animation: hintIn .25s both; }
-    .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 90; overflow: hidden; }
-    .confetti i { position: absolute; top: -20px; width: 7px; height: 12px; border-radius: 2px; background: hsl(var(--h), 85%, 65%); animation: confettiFall 2.3s ease-in forwards; }
-    @keyframes drift { from { transform: translate3d(0,0,0) scale(1); } to { transform: translate3d(26px,-28px,0) scale(1.12); } }
-    @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes breathe { 0%,100% { transform: scale(.96); opacity: .65; } 50% { transform: scale(1.06); opacity: 1; } }
-    @keyframes blink { 0%,100% { box-shadow: 0 0 0 3px rgba(22,168,120,.12); } 50% { box-shadow: 0 0 0 6px rgba(22,168,120,.03); } }
-    @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes pop { from { opacity: 0; transform: translateY(12px) scale(.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
-    @keyframes hintIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes confettiFall { to { transform: translate3d(var(--x), 105vh, 0) rotate(650deg); opacity: 0; } }
-    @media (max-width: 360px) { body { padding-left: 12px; padding-right: 12px; } .timer-card { padding-left: 13px; padding-right: 13px; } .control-btn { font-size: 11px; gap: 5px; } .theme-pill { display: none; } }
-    @media (prefers-reduced-motion: reduce) { *, *:before, *:after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
+    .modal { width: min(100%, 390px); max-height: 90dvh; overflow: auto; padding: 22px; border: 1px solid #292929; border-radius: 17px; background: #080808; }
+    .modal h2 { margin: 0; font-size: 18px; letter-spacing: -.4px; }
+    .modal p { color: var(--muted); font-size: 12px; line-height: 1.55; margin: 8px 0 16px; }
+    .money-input { width: 100%; border: 1px solid #303030; border-radius: 11px; padding: 14px; background: #111; color: #fff; font-size: 22px; font-weight: 700; outline: none; }
+    .modal-actions { display: flex; gap: 9px; margin-top: 15px; }
+    .modal-actions button { flex: 1; min-height: 44px; border: 1px solid #303030; border-radius: 11px; background: #111; color: #eee; font-size: 12px; font-weight: 700; }
+    .modal-actions .primary { border-color: #eee; background: #eee; color: #050505; }
+    .report-modal { width: min(100%, 410px); }
+    .report-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 13px; }
+    .close-btn { width: 34px; height: 34px; border: 1px solid #303030; border-radius: 10px; background: #111; color: #eee; font-size: 20px; }
+    .report-image { display: block; width: 100%; border: 1px solid #292929; border-radius: 10px; background: #050505; }
+    .download-btn { width: 100%; margin-top: 12px; min-height: 46px; border: 1px solid #eee; border-radius: 11px; background: #eee; color: #050505; font-size: 12px; font-weight: 750; }
+    .report-caption { margin: 9px 2px 0 !important; font-size: 10px !important; }
+    @media (max-width: 360px) { body { padding-left: 12px; padding-right: 12px; } .control-btn { font-size: 11px; } }
   </style>
 </head>
 <body>
-  <div class="ambient" aria-hidden="true"><div class="orb one"></div><div class="orb two"></div><div class="orb three"></div></div>
-  <div class="app">
+  <div class="app" id="app">
     <header class="topbar">
       <div class="brand">
-        <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3.5 2"></path></svg></div>
+        <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.7 1.7M9 2h6M12 2v3"></path></svg></div>
         <div><div class="brand-name">Ritmo</div><div class="brand-sub">Seu tempo vale dinheiro</div></div>
       </div>
-      <div class="top-actions">
-        <span class="theme-pill">Tema automático</span>
-        <button class="lock-btn" id="lockBtn" aria-label="Bloquear tela" title="Bloquear toques">
-          <svg id="lockIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
-        </button>
-      </div>
+      <span class="eyebrow">AMOLED</span>
     </header>
 
-    <section class="balance-card">
-      <div class="balance-head"><span class="eyebrow">Saldo atual</span><button class="edit-balance" id="editBalanceBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5 4 4M4 20l4.5-1 10.8-10.8a2.1 2.1 0 0 0-3-3L5.5 16 4 20Z"></path></svg>Editar saldo</button></div>
+    <section class="card balance-card">
+      <div class="balance-head"><span class="eyebrow">Saldo atual</span><button class="edit-balance" id="editBalanceBtn">Editar saldo</button></div>
       <div class="balance-value" id="balanceValue">R$ 0,00</div>
       <div class="balance-foot"><span class="dot"></span><span>+ R$ 2,00 a cada 3 minutos completos</span></div>
     </section>
 
-    <main class="timer-card">
+    <main class="card timer-card">
       <div class="timer-title">Tempo de atividade</div>
-      <div class="ring-wrap">
-        <svg class="progress-ring" viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="ringGradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6e63ff"/><stop offset="100%" stop-color="#36d5ad"/></linearGradient></defs><circle class="ring-track" cx="100" cy="100" r="90"></circle><circle class="ring-progress" id="ringProgress" cx="100" cy="100" r="90"></circle></svg>
-        <div class="ring-content"><div class="time" id="timer">00:00:00</div><div class="status" id="status"><span class="status-dot"></span><span id="statusText">Pronto para começar</span></div></div>
-      </div>
-      <div class="next-cycle"><span class="spark">✦</span><span id="nextLabel">Próximo ganho em</span><strong id="countdown">03:00</strong></div>
+      <div class="timer" id="timer">00:00:00</div>
+      <div class="status" id="statusText">Pronto para começar</div>
+      <div class="next-cycle"><span id="nextLabel">Próximo ganho em</span><strong id="countdown">03:00</strong></div>
       <div class="controls">
-        <button class="control-btn start-btn" id="startBtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.8c0-1 1.1-1.6 2-1.1l9.2 5.2a2.4 2.4 0 0 1 0 4.2L10 19.3c-.9.5-2-.1-2-1.1V5.8Z"></path></svg><span>Começar</span></button>
-        <button class="control-btn pause-btn" id="pauseBtn" disabled><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5.5A1.5 1.5 0 0 1 8.5 4h1A1.5 1.5 0 0 1 11 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-1A1.5 1.5 0 0 1 7 18.5v-13Zm6 0A1.5 1.5 0 0 1 14.5 4h1A1.5 1.5 0 0 1 17 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5v-13Z"></path></svg><span>Pausar</span></button>
-        <button class="control-btn stop-btn" id="stopBtn" disabled><svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2.2"></rect></svg><span>Parar</span></button>
+        <button class="control-btn start-btn" id="startBtn">Começar</button>
+        <button class="control-btn" id="pauseBtn" disabled>Pausar</button>
+        <button class="control-btn stop-btn" id="stopBtn" disabled>Parar</button>
       </div>
     </main>
 
     <section class="info-row">
-      <div class="info-card"><div class="info-label">Ganhos nesta sessão</div><div class="info-value" id="sessionValue">R$ 0,00</div><div class="info-hint">Somente ciclos completos</div></div>
-      <div class="info-card"><div class="info-label">Ciclos concluídos</div><div class="info-value" id="cyclesValue">0</div><div class="info-hint">Cada ciclo vale R$ 2,00</div></div>
+      <div class="card info-card"><div class="info-label">Ganhos nesta sessão</div><div class="info-value" id="sessionValue">R$ 0,00</div><div class="info-hint">Somente ciclos completos</div></div>
+      <div class="card info-card"><div class="info-label">Ciclos concluídos</div><div class="info-value" id="cyclesValue">0</div><div class="info-hint">R$ 2,00 por ciclo</div></div>
     </section>
-    <button class="install-btn" id="installBtn">＋ Instalar aplicativo</button>
-    <div class="footer-note">Mantenha o app aberto e permita notificações.<br>O tema acompanha automaticamente o celular.</div>
+    <button class="install-btn" id="installBtn">Instalar aplicativo</button>
+    <div class="footer-note">Permita as notificações para receber os avisos.<br>Durante a contagem, a tela fica preta para economizar energia em AMOLED.</div>
   </div>
 
-  <div class="shield" id="shield" aria-hidden="true"></div>
-  <div class="lock-hint" id="lockHint">Tela bloqueada · toque 2× no cadeado</div>
+  <section class="focus-screen" id="focusScreen" hidden aria-label="Cronômetro em tela AMOLED">
+    <div class="focus-caption">Ritmo · tempo ativo</div>
+    <div class="focus-time" id="focusTimer">00:00:00</div>
+    <div class="focus-status" id="focusStatus">Cronômetro em andamento</div>
+    <div class="focus-countdown"><span id="focusNextLabel">Próximo ganho em</span> <strong id="focusCountdown">03:00</strong></div>
+    <div class="focus-actions">
+      <button class="focus-pause" id="focusPauseBtn">Pausar</button>
+      <button class="focus-stop" id="focusStopBtn">Parar sessão</button>
+    </div>
+  </section>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <div class="confetti" id="confetti" aria-hidden="true"></div>
 
   <div class="modal-backdrop" id="balanceModal" role="dialog" aria-modal="true" aria-labelledby="balanceTitle">
     <div class="modal">
       <h2 id="balanceTitle">Editar saldo</h2>
       <p>Defina quanto você já tem. Os próximos ganhos de R$ 2,00 serão somados a esse valor.</p>
       <input class="money-input" id="balanceInput" type="number" inputmode="decimal" step="0.01" placeholder="0,00">
-      <div class="modal-actions"><button class="secondary" id="cancelBalance">Cancelar</button><button class="primary" id="saveBalance">Salvar saldo</button></div>
+      <div class="modal-actions"><button id="cancelBalance">Cancelar</button><button class="primary" id="saveBalance">Salvar saldo</button></div>
     </div>
   </div>
 
@@ -224,7 +167,7 @@
     <div class="modal report-modal">
       <div class="report-head"><h2 id="reportTitle">Resumo da sessão</h2><button class="close-btn" id="closeReport" aria-label="Fechar">×</button></div>
       <img class="report-image" id="reportImage" alt="Imagem com o resumo dos ganhos e do tempo ativo">
-      <button class="download-btn" id="downloadReport">↓ Salvar imagem</button>
+      <button class="download-btn" id="downloadReport">Salvar imagem</button>
       <p class="report-caption">A imagem pode ser salva na galeria ou compartilhada pelo celular.</p>
     </div>
   </div>
@@ -253,8 +196,6 @@
   let toastHandle = null;
   let reportUrl = null;
   let deferredInstallPrompt = null;
-  let locked = false;
-  let lastLockTap = 0;
 
   function showToast(message) {
     el('toast').textContent = message;
@@ -272,26 +213,38 @@
   function paintState() {
     const running = state === 'running';
     const paused = state === 'paused';
-    el('startBtn').innerHTML = running
-      ? '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.8c0-1 1.1-1.6 2-1.1l9.2 5.2a2.4 2.4 0 0 1 0 4.2L10 19.3c-.9.5-2-.1-2-1.1V5.8Z"></path></svg><span>Em andamento</span>'
-      : `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.8c0-1 1.1-1.6 2-1.1l9.2 5.2a2.4 2.4 0 0 1 0 4.2L10 19.3c-.9.5-2-.1-2-1.1V5.8Z"></path></svg><span>${paused ? 'Continuar' : 'Começar'}</span>`;
+    el('startBtn').textContent = paused ? 'Continuar' : 'Começar';
     el('startBtn').disabled = running;
     el('pauseBtn').disabled = !running;
     el('stopBtn').disabled = state === 'idle';
-    el('status').className = `status ${state}`;
     el('statusText').textContent = running ? 'Cronômetro em andamento' : paused ? 'Cronômetro pausado' : 'Pronto para começar';
+    el('focusPauseBtn').textContent = running ? 'Pausar' : 'Continuar';
+    el('focusStatus').textContent = running ? 'Cronômetro em andamento' : 'Cronômetro pausado';
   }
   function paintTimer(now = Date.now()) {
     const elapsed = activeElapsed(now);
     const withinCycle = elapsed % CYCLE_MS;
-    const progress = withinCycle / CYCLE_MS;
     const remaining = state === 'idle' ? CYCLE_MS : CYCLE_MS - withinCycle;
-    el('timer').textContent = formatTime(elapsed);
-    el('countdown').textContent = `${pad(Math.floor(remaining / 60000))}:${pad(Math.floor((remaining % 60000) / 1000))}`;
-    el('nextLabel').textContent = state === 'paused' ? 'Retome para o próximo ganho' : 'Próximo ganho em';
-    el('ringProgress').style.strokeDashoffset = String(565.49 * (1 - progress));
+    const time = formatTime(elapsed);
+    const countdown = `${pad(Math.floor(remaining / 60000))}:${pad(Math.floor((remaining % 60000) / 1000))}`;
+    el('timer').textContent = time;
+    el('countdown').textContent = countdown;
+    el('nextLabel').textContent = state === 'paused' ? 'Retome para o próximo ganho em' : 'Próximo ganho em';
     el('sessionValue').textContent = money(sessionEarnings);
     el('cyclesValue').textContent = String(completedCycles);
+    el('focusTimer').textContent = time;
+    el('focusCountdown').textContent = countdown;
+    el('focusNextLabel').textContent = state === 'paused' ? 'Retome para o próximo ganho em' : 'Próximo ganho em';
+  }
+  function showFocusScreen() {
+    el('app').hidden = true;
+    el('focusScreen').hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+  function showDashboard() {
+    el('focusScreen').hidden = true;
+    el('app').hidden = false;
+    document.body.style.overflow = '';
   }
   function getRegistration() {
     return ('serviceWorker' in navigator) ? navigator.serviceWorker.ready.catch(() => null) : Promise.resolve(null);
@@ -307,13 +260,10 @@
     };
     try {
       const registration = await getRegistration();
-      if (registration && registration.showNotification) {
-        await registration.showNotification('Ciclo concluído! + R$ 2,00', options);
-      } else {
-        new Notification('Ciclo concluído! + R$ 2,00', options);
-      }
+      if (registration && registration.showNotification) await registration.showNotification('Ciclo concluído! + R$ 2,00', options);
+      else new Notification('Ciclo concluído! + R$ 2,00', options);
     } catch (error) {
-      try { new Notification('Ciclo concluído! + R$ 2,00', options); } catch (_) { /* o aviso interno continua funcionando */ }
+      try { new Notification('Ciclo concluído! + R$ 2,00', options); } catch (_) { /* sem suporte: saldo permanece atualizado */ }
     }
   }
   function awardCompletedCycles(elapsed) {
@@ -328,7 +278,6 @@
     paintTimer();
     for (let i = 0; i < difference; i++) sendCycleNotification(firstCycle + i);
     showToast(`${difference > 1 ? `${difference} ciclos concluídos` : '3 minutos concluídos'} · + ${money(difference * REWARD)}`);
-    celebrate();
   }
   function tick() {
     if (state !== 'running') return;
@@ -344,9 +293,7 @@
     if (Notification.permission === 'default') {
       try { await Notification.requestPermission(); } catch (_) { /* segue sem notificação */ }
     }
-    if (Notification.permission !== 'granted') {
-      showToast('Ative as notificações nas permissões do navegador para receber os avisos.');
-    }
+    if (Notification.permission !== 'granted') showToast('Ative as notificações nas permissões do navegador para receber os avisos.');
   }
   async function acquireWakeLock() {
     if (!('wakeLock' in navigator) || state !== 'running') return;
@@ -354,7 +301,7 @@
       if (wakeLock) return;
       wakeLock = await navigator.wakeLock.request('screen');
       wakeLock.addEventListener('release', () => { wakeLock = null; });
-    } catch (_) { showToast('Não foi possível manter a tela acordada. Deixe o brilho/tela ligados.'); }
+    } catch (_) { showToast('Não foi possível manter a tela acordada.'); }
   }
   async function releaseWakeLock() {
     if (wakeLock) {
@@ -362,8 +309,19 @@
       wakeLock = null;
     }
   }
+  function requestImmersiveFullscreen() {
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+      try { const request = document.documentElement.requestFullscreen(); if (request && request.catch) request.catch(() => {}); } catch (_) {}
+    }
+  }
+  async function exitImmersiveFullscreen() {
+    if (document.fullscreenElement && document.exitFullscreen) {
+      try { await document.exitFullscreen(); } catch (_) {}
+    }
+  }
   async function startTimer() {
     if (state === 'running') return;
+    requestImmersiveFullscreen();
     if (state === 'idle') {
       accumulatedMs = 0;
       completedCycles = 0;
@@ -373,33 +331,31 @@
     await askNotificationPermission();
     state = 'running';
     startedAt = Date.now();
+    showFocusScreen();
     paintState();
     tick();
     clearInterval(tickHandle);
     tickHandle = setInterval(tick, 1000);
     acquireWakeLock();
-    if (state === 'running' && !document.hidden) showToast('Cronômetro iniciado. + R$ 2,00 a cada 3 minutos.');
   }
   async function pauseTimer() {
     if (state !== 'running') return;
     accumulatedMs += Date.now() - startedAt;
     state = 'paused';
+    startedAt = 0;
     awardCompletedCycles(accumulatedMs);
     clearInterval(tickHandle);
     await releaseWakeLock();
     paintState();
     paintTimer();
-    showToast('Cronômetro pausado. O tempo restante foi preservado.');
   }
   async function stopTimer() {
     if (state === 'idle') return;
     if (state === 'running') {
-      const now = Date.now();
-      accumulatedMs += now - startedAt;
+      accumulatedMs += Date.now() - startedAt;
       state = 'paused';
       startedAt = 0;
     }
-    // Também confere os ciclos no caso de parar logo após pausar.
     awardCompletedCycles(accumulatedMs);
     const finalDuration = accumulatedMs;
     const finalEarnings = sessionEarnings;
@@ -409,54 +365,37 @@
     accumulatedMs = 0;
     clearInterval(tickHandle);
     await releaseWakeLock();
+    showDashboard();
+    await exitImmersiveFullscreen();
     paintState();
     paintTimer();
     createReport(finalEarnings, finalDuration, finalCycles);
     el('reportModal').classList.add('show');
-    celebrate(true);
-  }
-  function celebrate(big = false) {
-    const host = el('confetti');
-    const count = big ? 42 : 12;
-    for (let i = 0; i < count; i++) {
-      const bit = document.createElement('i');
-      bit.style.left = `${Math.random() * 100}%`;
-      bit.style.setProperty('--x', `${(Math.random() - .5) * 150}px`);
-      bit.style.setProperty('--h', String(Math.floor(Math.random() * 360)));
-      bit.style.animationDelay = `${Math.random() * .45}s`;
-      host.appendChild(bit);
-      setTimeout(() => bit.remove(), 3000);
-    }
   }
   function createReport(earned, duration, cycles) {
     const canvas = document.createElement('canvas');
     canvas.width = 1080; canvas.height = 1350;
     const ctx = canvas.getContext('2d');
-    const bg = ctx.createLinearGradient(0, 0, 1080, 1350);
-    bg.addColorStop(0, '#17152f'); bg.addColorStop(.56, '#25265a'); bg.addColorStop(1, '#123c46');
-    ctx.fillStyle = bg; ctx.fillRect(0, 0, 1080, 1350);
-    const glow = ctx.createRadialGradient(870, 180, 15, 870, 180, 540);
-    glow.addColorStop(0, 'rgba(149,126,255,.45)'); glow.addColorStop(1, 'rgba(149,126,255,0)');
-    ctx.fillStyle = glow; ctx.fillRect(0, 0, 1080, 900);
-    ctx.fillStyle = 'rgba(255,255,255,.07)'; ctx.beginPath(); ctx.arc(130, 1150, 260, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#000000'; ctx.fillRect(0, 0, 1080, 1350);
+    ctx.strokeStyle = '#292929'; ctx.lineWidth = 3; ctx.strokeRect(52, 52, 976, 1246);
     ctx.textAlign = 'left';
-    ctx.fillStyle = '#bdb8ff'; ctx.font = '700 30px Inter, Arial, sans-serif'; ctx.fillText('RITMO  /  RESUMO DA SESSÃO', 82, 112);
-    ctx.fillStyle = '#ffffff'; ctx.font = '800 78px Inter, Arial, sans-serif'; ctx.fillText('Bom trabalho!', 78, 260);
-    ctx.fillStyle = 'rgba(255,255,255,.66)'; ctx.font = '500 31px Inter, Arial, sans-serif'; ctx.fillText('Seu tempo virou resultado.', 82, 318);
-    roundRect(ctx, 70, 405, 940, 375, 38, 'rgba(255,255,255,.10)', 'rgba(255,255,255,.15)');
-    ctx.fillStyle = '#bdb8ff'; ctx.font = '700 27px Inter, Arial, sans-serif'; ctx.fillText('TOTAL GANHO NESTA SESSÃO', 120, 490);
-    ctx.fillStyle = '#ffffff'; ctx.font = '900 112px Inter, Arial, sans-serif'; ctx.fillText(money(earned), 112, 635);
-    ctx.fillStyle = 'rgba(255,255,255,.72)'; ctx.font = '600 29px Inter, Arial, sans-serif'; ctx.fillText(`${cycles} ${cycles === 1 ? 'ciclo concluído' : 'ciclos concluídos'}  ·  R$ 2,00 por ciclo`, 122, 710);
-    roundRect(ctx, 70, 830, 445, 220, 30, 'rgba(255,255,255,.09)', 'rgba(255,255,255,.12)');
-    roundRect(ctx, 535, 830, 475, 220, 30, 'rgba(255,255,255,.09)', 'rgba(255,255,255,.12)');
-    ctx.fillStyle = '#bdb8ff'; ctx.font = '700 25px Inter, Arial, sans-serif'; ctx.fillText('TEMPO ATIVO', 115, 900);
-    ctx.fillStyle = '#fff'; ctx.font = '800 49px Inter, Arial, sans-serif'; ctx.fillText(formatTime(duration), 112, 986);
-    ctx.fillStyle = '#bdb8ff'; ctx.font = '700 25px Inter, Arial, sans-serif'; ctx.fillText('SALDO ATUAL', 580, 900);
-    ctx.fillStyle = '#fff'; ctx.font = '800 49px Inter, Arial, sans-serif'; ctx.fillText(money(balance), 578, 986);
-    ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = '500 23px Inter, Arial, sans-serif';
+    ctx.fillStyle = '#858585'; ctx.font = '700 30px Inter, Arial, sans-serif'; ctx.fillText('RITMO  /  RESUMO DA SESSÃO', 92, 145);
+    ctx.fillStyle = '#f4f4f4'; ctx.font = '700 78px Inter, Arial, sans-serif'; ctx.fillText('Bom trabalho!', 88, 285);
+    ctx.fillStyle = '#858585'; ctx.font = '500 31px Inter, Arial, sans-serif'; ctx.fillText('Seu tempo virou resultado.', 92, 342);
+    ctx.strokeStyle = '#292929'; ctx.strokeRect(88, 425, 904, 350);
+    ctx.fillStyle = '#858585'; ctx.font = '700 27px Inter, Arial, sans-serif'; ctx.fillText('TOTAL GANHO NESTA SESSÃO', 132, 500);
+    ctx.fillStyle = '#ffffff'; ctx.font = '800 104px Inter, Arial, sans-serif'; ctx.fillText(money(earned), 126, 640);
+    ctx.fillStyle = '#a0a0a0'; ctx.font = '600 28px Inter, Arial, sans-serif'; ctx.fillText(`${cycles} ${cycles === 1 ? 'ciclo concluído' : 'ciclos concluídos'}  ·  R$ 2,00 por ciclo`, 132, 710);
+    ctx.strokeStyle = '#292929'; ctx.strokeRect(88, 835, 430, 205);
+    ctx.strokeRect(550, 835, 442, 205);
+    ctx.fillStyle = '#858585'; ctx.font = '700 25px Inter, Arial, sans-serif'; ctx.fillText('TEMPO ATIVO', 125, 900);
+    ctx.fillStyle = '#f4f4f4'; ctx.font = '700 46px Inter, Arial, sans-serif'; ctx.fillText(formatTime(duration), 125, 980);
+    ctx.fillStyle = '#858585'; ctx.font = '700 25px Inter, Arial, sans-serif'; ctx.fillText('SALDO ATUAL', 586, 900);
+    ctx.fillStyle = '#f4f4f4'; ctx.font = '700 43px Inter, Arial, sans-serif'; ctx.fillText(money(balance), 586, 980);
+    ctx.fillStyle = '#777777'; ctx.font = '500 23px Inter, Arial, sans-serif';
     const date = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeStyle: 'short' }).format(new Date());
-    ctx.fillText(date, 82, 1170);
-    ctx.fillStyle = '#bdb8ff'; ctx.font = '700 27px Inter, Arial, sans-serif'; ctx.fillText('Cada minuto conta.', 82, 1255);
+    ctx.fillText(date, 92, 1170);
+    ctx.fillStyle = '#b5e5c8'; ctx.font = '600 27px Inter, Arial, sans-serif'; ctx.fillText('Cada minuto conta.', 92, 1250);
     const dataUrl = canvas.toDataURL('image/png');
     el('reportImage').src = dataUrl;
     if (reportUrl) URL.revokeObjectURL(reportUrl);
@@ -464,22 +403,21 @@
     el('downloadReport').onclick = () => {
       const link = document.createElement('a');
       link.href = dataUrl;
-      link.download = `ritmo-resumo-${new Date().toISOString().slice(0,10)}.png`;
+      link.download = `ritmo-resumo-${new Date().toISOString().slice(0, 10)}.png`;
       document.body.appendChild(link); link.click(); link.remove();
     };
-  }
-  function roundRect(ctx, x, y, w, h, r, fill, stroke) {
-    ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.fillStyle = fill; ctx.fill();
-    if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 2; ctx.stroke(); }
   }
 
   el('startBtn').addEventListener('click', startTimer);
   el('pauseBtn').addEventListener('click', pauseTimer);
   el('stopBtn').addEventListener('click', stopTimer);
+  el('focusPauseBtn').addEventListener('click', () => state === 'running' ? pauseTimer() : state === 'paused' ? startTimer() : null);
+  el('focusStopBtn').addEventListener('click', stopTimer);
   el('editBalanceBtn').addEventListener('click', () => {
+    if (state !== 'idle') return;
     el('balanceInput').value = balance.toFixed(2);
     el('balanceModal').classList.add('show');
-    setTimeout(() => el('balanceInput').focus(), 80);
+    setTimeout(() => el('balanceInput').focus(), 40);
   });
   el('cancelBalance').addEventListener('click', () => el('balanceModal').classList.remove('show'));
   el('saveBalance').addEventListener('click', () => {
@@ -493,30 +431,6 @@
   el('balanceModal').addEventListener('click', event => { if (event.target === el('balanceModal')) el('balanceModal').classList.remove('show'); });
   el('closeReport').addEventListener('click', () => el('reportModal').classList.remove('show'));
   el('reportModal').addEventListener('click', event => { if (event.target === el('reportModal')) el('reportModal').classList.remove('show'); });
-
-  el('lockBtn').addEventListener('click', () => {
-    const now = Date.now();
-    if (!locked) {
-      locked = true; lastLockTap = 0;
-      el('shield').classList.add('active');
-      el('lockBtn').classList.add('locked');
-      el('lockBtn').setAttribute('aria-label', 'Tela bloqueada. Toque duas vezes para desbloquear');
-      el('lockIcon').innerHTML = '<rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path><path d="M12 14v3"></path>';
-      document.body.classList.add('is-locked');
-      showToast('Toques bloqueados. Toque 2 vezes no cadeado para liberar.');
-    } else if (now - lastLockTap < 850) {
-      locked = false; lastLockTap = 0;
-      el('shield').classList.remove('active');
-      el('lockBtn').classList.remove('locked');
-      el('lockBtn').setAttribute('aria-label', 'Bloquear tela');
-      el('lockIcon').innerHTML = '<rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path>';
-      document.body.classList.remove('is-locked');
-      showToast('Tela desbloqueada.');
-    } else {
-      lastLockTap = now;
-      showToast('Toque mais uma vez no cadeado para desbloquear.');
-    }
-  });
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && state === 'running') acquireWakeLock();
   });
