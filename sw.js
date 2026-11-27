@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ritmo-amoled-v3-media';
+const CACHE_NAME = 'ritmo-amoled-v4-media-15s';
 const APP_FILES = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './silence.wav'];
 
 self.addEventListener('install', event => {

@@ -10,8 +10,8 @@ ATUALIZAR O APP EXISTENTE
 ARQUIVOS
 - index.html: aplicativo completo
 - manifest.json: configuração do PWA
-- sw.js: cache offline e notificações
-- silence.wav: áudio digital totalmente silencioso, em loop, para ativar os controles de mídia
+- sw.js: cache offline e notificações (cache atualizado para substituir o áudio anterior)
+- silence.wav: áudio digital totalmente silencioso de 15 segundos, em loop, para ativar os controles de mídia (o Chrome Android exige pelo menos 5 segundos)
 - icon-192.png e icon-512.png: ícones
 
 CONTROLES DO PLAYER (ANDROID / SMARTWATCH)
@@ -30,7 +30,7 @@ O botão Power também não é identificável pelo site: apagar/bloquear a tela 
 COMO HABILITAR O PLAYER
 1. Abra o PWA instalado e toque em Começar pelo menos uma vez, com o celular desbloqueado.
 2. Permita as notificações.
-3. O app inicia uma faixa WAV sem som para registrar uma sessão de mídia no Android. O arquivo não contém música ou fala audível.
+3. O app inicia uma faixa WAV de 15 segundos, em loop e com silêncio digital absoluto, para registrar uma sessão de mídia no Android. O Chrome Android exige duração mínima de 5 segundos para mostrar o player de mídia. O arquivo não contém música ou fala audível.
 4. Abra o player de mídia nas notificações/tela de bloqueio ou no smartwatch. Use Play/Pause, Próxima e Anterior.
 5. Para receber os controles novamente após o Android encerrar a sessão, abra o Ritmo e toque em Começar uma vez.
 
