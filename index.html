@@ -138,7 +138,7 @@
       <div class="card info-card"><div class="info-label">Ciclos concluídos</div><div class="info-value" id="cyclesValue">0</div><div class="info-hint">R$ 2,00 por ciclo</div></div>
     </section>
     <button class="install-btn" id="installBtn">Instalar aplicativo</button>
-    <div class="footer-note">Permita as notificações para receber os avisos.<br>Durante a contagem, a tela fica preta para economizar energia em AMOLED.</div>
+    <div class="footer-note">Player do celular/smartwatch: Play/Pause = iniciar ou pausar · Próxima = parar · Anterior = zerar saldo.<br>Teclas físicas de volume só funcionam quando o navegador entrega esses eventos ao PWA.</div>
   </div>
 
   <section class="focus-screen" id="focusScreen" hidden aria-label="Cronômetro em tela AMOLED">
@@ -172,6 +172,9 @@
     </div>
   </div>
 
+  <!-- Faixa silenciosa usada somente para manter a sessão de mídia do Android ativa. -->
+  <audio id="mediaAudio" src="./silence.wav" preload="auto" loop playsinline></audio>
+
 <script>
 (() => {
   'use strict';
@@ -196,6 +199,8 @@
   let toastHandle = null;
   let reportUrl = null;
   let deferredInstallPrompt = null;
+  let mediaSessionReady = false;
+  let lastVolumeKeyAt = 0;
 
   function showToast(message) {
     el('toast').textContent = message;
@@ -249,6 +254,134 @@
   function getRegistration() {
     return ('serviceWorker' in navigator) ? navigator.serviceWorker.ready.catch(() => null) : Promise.resolve(null);
   }
+
+  async function sendControlNotification(title, body) {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    const options = {
+      body,
+      icon: './icon-192.png', badge: './icon-192.png',
+      tag: `ritmo-controle-${Date.now()}`, renotify: true,
+      timestamp: Date.now(), data: { url: location.href }
+    };
+    try {
+      const registration = await getRegistration();
+      if (registration && registration.showNotification) await registration.showNotification(title, options);
+      else new Notification(title, options);
+    } catch (_) {
+      try { new Notification(title, options); } catch (_) { /* as ações continuam funcionando sem aviso */ }
+    }
+  }
+
+  function updateMediaSessionState() {
+    if (!('mediaSession' in navigator)) return;
+    try {
+      navigator.mediaSession.playbackState = state === 'running' ? 'playing' : 'paused';
+      if (!navigator.mediaSession.metadata && 'MediaMetadata' in window) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: 'Ritmo — Cronômetro',
+          artist: 'Controles do cronômetro',
+          album: 'Play/Pause · Próxima faixa · Faixa anterior',
+          artwork: [
+            { src: './icon-192.png', sizes: '192x192', type: 'image/png' },
+            { src: './icon-512.png', sizes: '512x512', type: 'image/png' }
+          ]
+        });
+      }
+    } catch (_) { /* Media Session não é suportada em todos os navegadores */ }
+  }
+
+  function startSilentMedia() {
+    const audio = el('mediaAudio');
+    if (!audio) return Promise.resolve(false);
+    updateMediaSessionState();
+    try {
+      const promise = audio.play();
+      if (promise && typeof promise.then === 'function') {
+        return promise.then(() => { mediaSessionReady = true; updateMediaSessionState(); return true; })
+          .catch(() => false);
+      }
+      mediaSessionReady = true;
+      return Promise.resolve(true);
+    } catch (_) { return Promise.resolve(false); }
+  }
+
+  function pauseSilentMedia() {
+    const audio = el('mediaAudio');
+    if (audio) { try { audio.pause(); } catch (_) {} }
+    updateMediaSessionState();
+  }
+
+  function configureMediaSession() {
+    if (!('mediaSession' in navigator)) return;
+    const session = navigator.mediaSession;
+    if ('MediaMetadata' in window) {
+      try {
+        session.metadata = new MediaMetadata({
+          title: 'Ritmo — Cronômetro',
+          artist: 'Controles do cronômetro',
+          album: 'Play/Pause · Próxima faixa · Faixa anterior',
+          artwork: [
+            { src: './icon-192.png', sizes: '192x192', type: 'image/png' },
+            { src: './icon-512.png', sizes: '512x512', type: 'image/png' }
+          ]
+        });
+      } catch (_) {}
+    }
+    const set = (action, handler) => {
+      try { session.setActionHandler(action, handler); } catch (_) { /* ação não disponível neste aparelho */ }
+    };
+    set('play', async () => {
+      if (state === 'running') {
+        await sendControlNotification('Ritmo já está rodando', 'O cronômetro já está contando.');
+        return;
+      }
+      await startTimer({ source: 'media', announce: true });
+    });
+    set('pause', async () => {
+      if (state === 'running') {
+        await pauseTimer();
+        await sendControlNotification('Cronômetro pausado', 'Pausa acionada pelo controle de mídia.');
+      } else {
+        await sendControlNotification('Cronômetro já está pausado', 'Nenhuma alteração foi necessária.');
+      }
+    });
+    set('nexttrack', async () => {
+      if (state !== 'idle') await stopTimer({ source: 'media' });
+      else await sendControlNotification('Sessão já encerrada', 'O cronômetro já está parado.');
+    });
+    set('previoustrack', async () => {
+      balance = 0;
+      persistBalance();
+      el('reportModal').classList.remove('show');
+      await sendControlNotification('Saldo zerado', 'O saldo do Ritmo foi redefinido para R$ 0,00.');
+      showToast('Saldo zerado pelo controle de mídia.');
+    });
+    set('stop', async () => {
+      if (state !== 'idle') await stopTimer({ source: 'media' });
+      else await sendControlNotification('Sessão já encerrada', 'O cronômetro já está parado.');
+    });
+    updateMediaSessionState();
+  }
+
+  async function toggleFromVolumeKey() {
+    if (state === 'running') {
+      await pauseTimer();
+      await sendControlNotification('Cronômetro pausado', 'Comando recebido de uma tecla de volume.');
+    } else {
+      await startTimer({ source: 'volume', announce: true });
+    }
+  }
+
+  document.addEventListener('keydown', event => {
+    const volumeKeys = ['AudioVolumeUp', 'AudioVolumeDown', 'VolumeUp', 'VolumeDown'];
+    const isVolume = volumeKeys.includes(event.key) || [24, 25, 174, 175].includes(event.keyCode);
+    if (!isVolume || event.repeat) return;
+    const now = Date.now();
+    if (now - lastVolumeKeyAt < 500) return;
+    lastVolumeKeyAt = now;
+    if (event.cancelable) event.preventDefault();
+    toggleFromVolumeKey();
+  }, { passive: false });
   async function sendCycleNotification(cycleNumber) {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
     const options = {
@@ -319,16 +452,17 @@
       try { await document.exitFullscreen(); } catch (_) {}
     }
   }
-  async function startTimer() {
+  async function startTimer({ source = 'app', announce = false } = {}) {
     if (state === 'running') return;
+    const wasPaused = state === 'paused';
     requestImmersiveFullscreen();
+    el('reportModal').classList.remove('show');
     if (state === 'idle') {
       accumulatedMs = 0;
       completedCycles = 0;
       sessionEarnings = 0;
       paintTimer();
     }
-    await askNotificationPermission();
     state = 'running';
     startedAt = Date.now();
     showFocusScreen();
@@ -336,7 +470,20 @@
     tick();
     clearInterval(tickHandle);
     tickHandle = setInterval(tick, 1000);
+    updateMediaSessionState();
+    // Chama play antes de qualquer await para aproveitar a ativação do toque/controle de mídia.
+    const mediaStarted = startSilentMedia();
+    await askNotificationPermission();
     acquireWakeLock();
+    await mediaStarted;
+    if (announce) {
+      const verb = wasPaused ? 'retomado' : 'iniciado';
+      const title = wasPaused ? 'Cronômetro retomado' : 'Cronômetro iniciado';
+      const message = source === 'volume'
+        ? `Cronômetro ${verb} pelo botão de volume.`
+        : `Cronômetro ${verb} pelo controle de mídia.`;
+      await sendControlNotification(title, message);
+    }
   }
   async function pauseTimer() {
     if (state !== 'running') return;
@@ -346,10 +493,11 @@
     awardCompletedCycles(accumulatedMs);
     clearInterval(tickHandle);
     await releaseWakeLock();
+    pauseSilentMedia();
     paintState();
     paintTimer();
   }
-  async function stopTimer() {
+  async function stopTimer({ source = 'app' } = {}) {
     if (state === 'idle') return;
     if (state === 'running') {
       accumulatedMs += Date.now() - startedAt;
@@ -365,12 +513,16 @@
     accumulatedMs = 0;
     clearInterval(tickHandle);
     await releaseWakeLock();
+    pauseSilentMedia();
     showDashboard();
     await exitImmersiveFullscreen();
     paintState();
     paintTimer();
     createReport(finalEarnings, finalDuration, finalCycles);
     el('reportModal').classList.add('show');
+    if (source === 'media') {
+      await sendControlNotification('Cronômetro parado', `Sessão encerrada: ${formatTime(finalDuration)} ativos, ${money(finalEarnings)} ganhos.`);
+    }
   }
   function createReport(earned, duration, cycles) {
     const canvas = document.createElement('canvas');
@@ -453,6 +605,7 @@
   persistBalance();
   paintState();
   paintTimer();
+  configureMediaSession();
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
     navigator.serviceWorker.register('./sw.js').catch(() => showToast('Não foi possível ativar o modo instalável/offline.'));
   }

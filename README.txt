@@ -1,39 +1,50 @@
-RITMO AMOLED — PWA DE GANHOS A CADA 3 MINUTOS
+RITMO AMOLED — CONTROLES PELO PLAYER DO ANDROID / SMARTWATCH
 
-ATUALIZAR O APP EXISTENTE PELO CELULAR
-1. Baixe e extraia este ZIP.
-2. Abra o mesmo repositório do GitHub onde está a versão anterior.
-3. Envie os 6 arquivos desta versão para a raiz do repositório, substituindo os arquivos antigos com os mesmos nomes.
-4. Confirme o commit.
-5. Aguarde o GitHub Pages publicar a atualização.
-6. Feche completamente o Ritmo no celular e abra novamente. Caso ainda apareça a versão antiga, feche o app, abra o endereço do GitHub Pages no Chrome e atualize a página; depois abra o app instalado novamente.
+ATUALIZAR O APP EXISTENTE
+1. Baixe e extraia o ZIP.
+2. Abra o mesmo repositório do GitHub Pages.
+3. Envie TODOS os arquivos para a raiz, substituindo os antigos.
+4. Confirme o commit e aguarde a publicação do GitHub Pages.
+5. Feche o Ritmo completamente. Abra o endereço do GitHub Pages no Chrome, atualize a página e depois abra o app instalado.
 
 ARQUIVOS
 - index.html: aplicativo completo
-- manifest.json: configuração de instalação do PWA
+- manifest.json: configuração do PWA
 - sw.js: cache offline e notificações
-- icon-192.png e icon-512.png: ícones do aplicativo
+- silence.wav: áudio digital totalmente silencioso, em loop, para ativar os controles de mídia
+- icon-192.png e icon-512.png: ícones
 
-O QUE MUDOU
-- Tema escuro AMOLED com preto absoluto (#000000) em toda a interface.
-- Ao começar ou continuar, a interface normal é substituída por uma tela preta em tela cheia, com cronômetro, tempo para o próximo ganho e controles discretos.
-- O botão Pausar muda para Continuar quando a sessão está pausada.
-- Parar sessão encerra o cronômetro, retorna à tela principal e gera a imagem de resumo.
-- Botão do cadeado removido.
-- Animações, sombras, gradientes, blur e efeitos visuais removidos.
-- Fonte Inter mantida; sem internet, o sistema usa a fonte alternativa do celular.
+CONTROLES DO PLAYER (ANDROID / SMARTWATCH)
+- Play: começa o cronômetro quando parado; retoma quando pausado.
+- Pause: pausa o cronômetro.
+- Próxima faixa (Next): para a sessão e gera a imagem do resumo.
+- Faixa anterior (Previous): zera o saldo para R$ 0,00 sem apagar a contagem que estiver em andamento.
+- Cada comando remoto envia uma notificação explicando a ação.
+- Depois de parar ou zerar o saldo, o player permanece preparado para iniciar outra sessão, enquanto o navegador mantiver a sessão de mídia disponível.
+
+BOTÕES FÍSICOS DE VOLUME E POWER — LIMITAÇÃO DO NAVEGADOR
+Um site/PWA não tem permissão para capturar de forma confiável os botões físicos de volume ou identificar o botão Power no Android. Alguns dispositivos/navegadores podem entregar eventos de tecla de volume; o app tenta reconhecer esses eventos e, se forem entregues, alterna entre iniciar/retomar e pausar, notificando a ação. Na maioria dos celulares, porém, o Android consome as teclas de volume para ajustar o volume e não informa a tecla ao site.
+
+O botão Power também não é identificável pelo site: apagar/bloquear a tela pode apenas ocultar ou suspender a página, e isso não permite distinguir Power de troca de aplicativo ou outra causa. Por isso, o app não envia uma notificação falsa dizendo que o Power foi pressionado.
+
+COMO HABILITAR O PLAYER
+1. Abra o PWA instalado e toque em Começar pelo menos uma vez, com o celular desbloqueado.
+2. Permita as notificações.
+3. O app inicia uma faixa WAV sem som para registrar uma sessão de mídia no Android. O arquivo não contém música ou fala audível.
+4. Abra o player de mídia nas notificações/tela de bloqueio ou no smartwatch. Use Play/Pause, Próxima e Anterior.
+5. Para receber os controles novamente após o Android encerrar a sessão, abra o Ritmo e toque em Começar uma vez.
 
 RECURSOS MANTIDOS
-- + R$ 2,00 por ciclo completo de 3 minutos ativos.
-- Saldo salvo no celular e editável.
-- Pausar preserva o tempo parcial do ciclo; Continuar retoma de onde parou.
-- Notificação a cada ciclo concluído.
-- Resumo em imagem ao parar, com ganhos, tempo ativo, ciclos e saldo atual.
-- Wake Lock para tentar manter a tela ligada enquanto o cronômetro está em andamento.
-- Instalação como PWA e cache offline.
+- R$ 2,00 a cada 3 minutos completos de tempo ativo.
+- Pausa preserva o tempo parcial do ciclo.
+- Saldo editável e salvo em localStorage (mesma chave ritmo_balance da versão anterior).
+- Notificação de cada ciclo e notificações dos comandos do player.
+- Relatório em imagem ao parar.
+- Tela AMOLED preta, Wake Lock, instalação PWA e cache offline.
 
-OBSERVAÇÕES IMPORTANTES
-- A contagem e as notificações funcionam melhor com o PWA aberto em primeiro plano e a tela ligada. O Android pode atrasar notificações se suspender o navegador ou aplicar economia de bateria.
-- A tela AMOLED preta ajuda a economizar energia principalmente em telas OLED/AMOLED; o consumo do painel varia conforme brilho, área acesa e aparelho.
-- O app tenta entrar em tela cheia ao começar. A disponibilidade desse recurso depende do navegador e do modo como o PWA foi instalado.
-- O saldo fica salvo no armazenamento local do navegador. Evite limpar os dados do app/site se quiser preservá-lo.
+OBSERVAÇÕES
+- A exibição dos controles de mídia varia por marca, versão do Android e navegador. O navegador pode encerrar a sessão de mídia quando o sistema economiza bateria.
+- O PWA precisa estar instalado/aberto inicialmente e receber uma primeira interação para iniciar o áudio silencioso; navegadores bloqueiam reprodução automática sem gesto do usuário.
+- A contagem e notificações funcionam melhor com o PWA aberto em primeiro plano. O Android pode suspender timers/notificações em segundo plano.
+- A imagem do relatório não bloqueia os comandos do player; um comando Play fecha o relatório e inicia/retoma a sessão.
+- Não limpe os dados do site/app para preservar o saldo local.

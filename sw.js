@@ -1,5 +1,5 @@
-const CACHE_NAME = 'ritmo-amoled-v2';
-const APP_FILES = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
+const CACHE_NAME = 'ritmo-amoled-v3-media';
+const APP_FILES = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './silence.wav'];
 
 self.addEventListener('install', event => {
   event.waitUntil(

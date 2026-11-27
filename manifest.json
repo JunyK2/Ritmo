@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Ritmo — Cronômetro de Ganhos AMOLED",
   "short_name": "Ritmo",
-  "description": "Cronômetro AMOLED com ganhos de R$ 2,00 a cada 3 minutos.",
+  "description": "Cronômetro AMOLED com controles pelo player do Android e smartwatch.",
   "lang": "pt-BR",
   "start_url": "./",
   "scope": "./",
